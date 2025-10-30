@@ -102,9 +102,14 @@ module Spring
 
       Rails::Application.initializer :ensure_reloading_is_enabled, group: :all do
         if Rails.application.config.cache_classes
+          config_name, set_to = if Rails.application.config.respond_to?(:enable_reloading=)
+            ["enable_reloading", "true"]
+          else
+            ["cache_classes", "false"]
+          end
           raise <<-MSG.strip_heredoc
             Spring reloads, and therefore needs the application to have reloading enabled.
-            Please, set config.cache_classes to false in config/environments/#{Rails.env}.rb.
+            Please, set config.#{config_name} to #{set_to} in config/environments/#{Rails.env}.rb.
           MSG
         end
       end
@@ -124,8 +129,9 @@ module Spring
 
       if defined?(Rails) && Rails.application
         watcher.add Rails.application.paths["config/initializers"]
-        Rails::Engine.descendants.each do |engine|
-          if engine.root.to_s.start_with?(Rails.root.to_s)
+        rails_root = Rails.root.to_s
+        Rails::Engine.subclasses.each do |engine|
+          if engine.root.to_s.start_with?(rails_root)
             watcher.add engine.paths["config/initializers"].expanded
           end
         end
@@ -320,6 +326,7 @@ module Spring
               if $!
                 lib = File.expand_path("..", __FILE__)
                 $!.backtrace.reject! { |line| line.start_with?(lib) } unless $!.backtrace.frozen?
+                $!.backtrace_locations.reject! { |line| line.path&.start_with?(lib) } unless $!.backtrace_locations.frozen?
               end
             end
           end
@@ -331,6 +338,7 @@ module Spring
               if $!
                 lib = File.expand_path("..", __FILE__)
                 $!.backtrace.reject! { |line| line.start_with?(lib) } unless $!.backtrace.frozen?
+                $!.backtrace_locations.reject! { |line| line.path&.start_with?(lib) } unless $!.backtrace_locations.frozen?
               end
             end
           end

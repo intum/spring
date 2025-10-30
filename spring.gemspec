@@ -13,9 +13,10 @@ Gem::Specification.new do |gem|
   gem.files         = Dir["LICENSE.txt", "README.md", "lib/**/*", "bin/*"]
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
 
-  gem.required_ruby_version = ">= 2.7.0"
+  gem.required_ruby_version = ">= 3.1.0"
 
   gem.metadata = {
     "rubygems_mfa_required" => "true",
+    "changelog_uri" => "https://github.com/rails/spring/blob/main/CHANGELOG.md"
   }
 end
